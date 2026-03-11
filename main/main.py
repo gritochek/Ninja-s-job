@@ -198,9 +198,9 @@ SCREEN_HEIGHT = 768
 SCREEN_TITLE = "Ninja's Job"
 
 
-class MyGame(arcade.Window):
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+class GameView(arcade.View):
+    def __init__(self):
+        super().__init__()
         arcade.set_background_color(arcade.color.DARK_SLATE_GRAY)
 
         self.player_list = None
@@ -345,11 +345,6 @@ class MyGame(arcade.Window):
 
         elif self.game_state == "GAME_OVER":
             if self.current_level >= self.max_levels:
-                arcade.draw_rectangle_filled(
-                    SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
-                    400, 200,
-                    arcade.color.DARK_GREEN
-                )
                 arcade.draw_text("ПОБЕДА!",
                                  SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50,
                                  arcade.color.GOLD, 40, anchor_x="center")
@@ -404,6 +399,9 @@ class MyGame(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         self.keys_pressed.add(key)
+        if key == arcade.key.ESCAPE:
+            self.keys_pressed.clear()
+            self.window.show_view(PauseView(self))
 
         if key == arcade.key.SPACE:
             if self.game_state == "LEVEL_COMPLETE" and self.current_level < self.max_levels:
@@ -421,9 +419,38 @@ class MyGame(arcade.Window):
             self.keys_pressed.remove(key)
 
 
+class MenuView(arcade.View):
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.DARK_BLUE_GRAY)
+
+    def on_draw(self):
+        arcade.draw_text("NINJA'S JOB", SCREEN_WIDTH / 2, 400, arcade.color.GOLD, 50, anchor_x="center")
+        arcade.draw_text("Нажми Enter для начала игры", SCREEN_WIDTH / 2, 300, arcade.color.WHITE, 20, anchor_x="center")
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ENTER:
+            game_view = GameView()
+            game_view.setup()
+            self.window.show_view(game_view)
+
+
+class PauseView(arcade.View):
+    def __init__(self, game_view):
+        super().__init__()
+        self.game_view = game_view
+
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("ПАУЗА (ESC - вернуться)", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, arcade.color.WHITE, 30,
+                         anchor_x="center")
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ESCAPE: self.window.show_view(self.game_view)
+
+
 def main():
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    game.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window.show_view(MenuView())
     arcade.run()
 
 
